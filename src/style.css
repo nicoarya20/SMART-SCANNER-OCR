@@ -96,6 +96,15 @@ h2 { margin: 0; color: #172127; font: 800 21px/1.2 'Playfair Display', Georgia, 
 .ocr-progress__track { height: 5px; overflow: hidden; border-radius: 10px; background: #e9ece8; }
 .ocr-progress__track span { display: block; width: 0; height: 100%; border-radius: inherit; background: #aa1720; transition: width .2s ease; }
 .ocr-progress p { min-height: 16px; margin: 8px 0 0; color: #66747b; font: 10px 'DM Mono', monospace; }
+.ocr-diagnostics { margin-top: 14px; padding: 13px; border: 1px solid #d7dfdb; border-radius: 7px; background: #f8faf8; }
+.ocr-diagnostics__eyebrow { margin: 0 0 10px; color: #9d1820; font: 500 9px/1 'DM Mono', monospace; letter-spacing: .13em; }
+.ocr-diagnostics__label { margin: 0 0 5px; color: #647177; font-size: 10px; font-weight: 800; }
+.ocr-raw-text { display: block; max-height: 70px; overflow: auto; padding: 9px; color: #455259; border: 1px solid #d9e0dc; border-radius: 4px; background: #fff; font: 11px/1.5 'DM Mono', monospace; white-space: pre-wrap; word-break: break-word; }
+.ocr-candidate { margin-top: 13px; }
+.ocr-candidate__text { display: flex; flex-wrap: wrap; gap: 1px; padding: 10px; color: #1d292e; border: 1px solid #cbd5d0; border-radius: 4px; background: #fff; font: 500 15px/1.25 'DM Mono', monospace; letter-spacing: .08em; }
+.ocr-candidate__char { display: inline-block; min-width: .75em; text-align: center; }
+.ocr-candidate__char--corrected { color: #573b12; border-radius: 2px; background: #f9d98a; box-shadow: 0 0 0 1px #e9bc5c; }
+.ocr-candidate__note { margin: 8px 0 0; color: #6c6455; font-size: 10px; line-height: 1.55; }
 
 .result-card { border-top: 3px solid #a8151d; }
 .input-label { display: block; margin: 17px 0 7px; color: #3d4b51; font-size: 11px; font-weight: 800; }

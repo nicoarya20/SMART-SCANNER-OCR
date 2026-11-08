@@ -114,6 +114,16 @@
             <div class="ocr-progress__track"><span id="ocrProgressBar"></span></div>
             <p id="ocrStatus">Menyiapkan OCR...</p>
           </div>
+          <section class="ocr-diagnostics" id="ocrDiagnostics" hidden aria-live="polite" aria-labelledby="ocrDiagnosticsTitle">
+            <p class="ocr-diagnostics__eyebrow" id="ocrDiagnosticsTitle">HASIL PEMBACAAN OCR</p>
+            <p class="ocr-diagnostics__label">Teks mentah dari area yang dipilih</p>
+            <output class="ocr-raw-text" id="ocrRawText">Belum ada hasil OCR.</output>
+            <div class="ocr-candidate" id="ocrCandidate" hidden>
+              <p class="ocr-diagnostics__label" id="ocrCandidateLabel">Kandidat VIN</p>
+              <code class="ocr-candidate__text" id="ocrCandidateText"></code>
+              <p class="ocr-candidate__note" id="ocrCandidateNote"></p>
+            </div>
+          </section>
         </section>
 
         <section class="card result-card" aria-labelledby="review-title">

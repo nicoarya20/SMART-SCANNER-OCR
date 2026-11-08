@@ -1,7 +1,7 @@
 import { createWorker, PSM } from 'tesseract.js';
 import './style.css';
 import { DEFAULT_CROP, cropToPixels, moveCrop, resizeCrop } from './crop.js';
-import { extractVinCandidate, isValidVin, normalizeVinInput } from './vin.js';
+import { analyzeVinOcr, isValidVin, normalizeVinInput } from './vin.js';
 
 const SSC_URL = 'https://ssc.toyota.astra.co.id/';
 const MAX_IMAGE_EDGE = 2400;
@@ -27,6 +27,12 @@ const elements = {
   ocrProgress: document.querySelector('#ocrProgress'),
   ocrProgressBar: document.querySelector('#ocrProgressBar'),
   ocrStatus: document.querySelector('#ocrStatus'),
+  ocrDiagnostics: document.querySelector('#ocrDiagnostics'),
+  ocrRawText: document.querySelector('#ocrRawText'),
+  ocrCandidate: document.querySelector('#ocrCandidate'),
+  ocrCandidateLabel: document.querySelector('#ocrCandidateLabel'),
+  ocrCandidateText: document.querySelector('#ocrCandidateText'),
+  ocrCandidateNote: document.querySelector('#ocrCandidateNote'),
   vin: document.querySelector('#vin'),
   validation: document.querySelector('#vinValidation'),
   validIcon: document.querySelector('#validIcon'),
@@ -61,6 +67,62 @@ function showToast(message) {
   toastTimeout = window.setTimeout(() => {
     elements.toast.hidden = true;
   }, 3600);
+}
+
+function resetOcrDiagnostics() {
+  elements.ocrDiagnostics.hidden = true;
+  elements.ocrCandidate.hidden = true;
+  elements.ocrRawText.textContent = 'Belum ada hasil OCR.';
+  elements.ocrCandidateText.replaceChildren();
+  elements.ocrCandidateNote.textContent = '';
+}
+
+function renderCandidateCharacters(candidate) {
+  const correctionByIndex = new Map(candidate.corrections.map((correction) => [correction.index, correction]));
+  const characters = candidate.valid ? candidate.normalized : candidate.raw;
+  const fragment = document.createDocumentFragment();
+
+  [...characters].forEach((character, index) => {
+    const element = document.createElement('span');
+    const correction = correctionByIndex.get(index);
+    element.textContent = character;
+    if (correction) {
+      element.className = 'ocr-candidate__char ocr-candidate__char--corrected';
+      element.title = `OCR membaca ${correction.from}, kandidat memakai ${correction.to}`;
+      element.setAttribute('aria-label', `${correction.from} dibaca sebagai ${correction.to}`);
+    }
+    fragment.append(element);
+  });
+
+  elements.ocrCandidateText.replaceChildren(fragment);
+}
+
+function renderOcrDiagnostics(analysis) {
+  elements.ocrDiagnostics.hidden = false;
+  elements.ocrRawText.textContent = analysis.rawText || 'OCR tidak menghasilkan teks yang dapat dibaca.';
+  const candidate = analysis.valid ?? analysis.best;
+
+  if (!candidate) {
+    elements.ocrCandidate.hidden = true;
+    return;
+  }
+
+  elements.ocrCandidate.hidden = false;
+  elements.ocrCandidateLabel.textContent = candidate.valid
+    ? 'Kandidat VIN terbaik'
+    : `Kandidat terdekat (${candidate.raw.length} dari 17 karakter)`;
+  renderCandidateCharacters(candidate);
+
+  if (candidate.corrections.length > 0) {
+    const details = candidate.corrections
+      .map((correction) => `karakter ke-${correction.index + 1}: ${correction.from} → ${correction.to}`)
+      .join(', ');
+    elements.ocrCandidateNote.textContent = `Karakter kuning adalah koreksi tebakan OCR (${details}). Periksa dengan dokumen asli.`;
+  } else if (candidate.valid) {
+    elements.ocrCandidateNote.textContent = 'Format kandidat sudah 17 karakter valid. Tetap cocokkan setiap karakter dengan dokumen asli.';
+  } else {
+    elements.ocrCandidateNote.textContent = 'Kandidat belum valid. Anda dapat menyalin atau mengetik ulang karakter yang terlihat pada dokumen ke kolom VIN.';
+  }
 }
 
 function stopCamera() {
@@ -119,6 +181,7 @@ function invalidateCrop(message = 'Area berubah. Tekan “Gunakan area ini” un
   ocrCanvas = null;
   elements.readVin.disabled = true;
   elements.cropSelection.classList.remove('is-confirmed');
+  resetOcrDiagnostics();
   setCropStatus(message);
 }
 
@@ -137,6 +200,7 @@ function resetCaptureState() {
   elements.cropWorkspace.hidden = true;
   elements.cameraFrame.classList.remove('is-cropping');
   elements.cropSelection.classList.remove('is-confirmed');
+  resetOcrDiagnostics();
 }
 
 function openCropEditor() {
@@ -368,6 +432,7 @@ async function recognizeVin() {
   }
 
   setOcrBusy(true);
+  resetOcrDiagnostics();
   elements.ocrStatus.textContent = 'Menyiapkan area nomor rangka...';
 
   let worker;
@@ -381,7 +446,7 @@ async function recognizeVin() {
       },
     });
     const modes = [PSM.SINGLE_LINE, PSM.RAW_LINE];
-    const candidates = [];
+    const analyses = [];
 
     for (const [index, mode] of modes.entries()) {
       elements.ocrStatus.textContent = index === 0
@@ -392,20 +457,28 @@ async function recognizeVin() {
         tessedit_pageseg_mode: mode,
       });
       const { data } = await worker.recognize(ocrCanvas);
-      const candidate = extractVinCandidate(data.text);
-      if (candidate) candidates.push(candidate);
+      analyses.push(analyzeVinOcr(data.text));
     }
 
-    const candidate = candidates[0];
+    const diagnostic = analyses.find((analysis) => analysis.valid)
+      ?? analyses.sort((first, second) => (second.best?.score ?? -Infinity) - (first.best?.score ?? -Infinity))[0];
+    renderOcrDiagnostics(diagnostic ?? { rawText: '', best: null, valid: null });
+    const candidate = diagnostic?.valid;
+
     if (candidate) {
-      elements.vin.value = candidate;
+      elements.vin.value = candidate.normalized;
       refreshVinState();
       elements.ocrStatus.textContent = 'VIN ditemukan dari area yang dipilih. Periksa semua karakter sebelum melanjutkan.';
       showToast('VIN terdeteksi. Cocokkan kembali dengan dokumen asli.');
       elements.vin.focus();
     } else {
-      elements.ocrStatus.textContent = 'VIN 17 karakter belum ditemukan. Perbesar atau sesuaikan crop, lalu coba lagi.';
-      showToast('OCR belum yakin. Sesuaikan area crop agar lebih rapat di sekitar VIN.');
+      const nearCandidate = diagnostic?.best;
+      if (nearCandidate?.raw.length === 17) {
+        elements.vin.value = nearCandidate.raw;
+        refreshVinState();
+      }
+      elements.ocrStatus.textContent = 'VIN belum valid. Lihat teks mentah dan kandidat OCR di bawah untuk dikoreksi.';
+      showToast('OCR belum yakin. Periksa kandidat dan teks mentah sebelum mencoba crop lain.');
       elements.cropSelection.focus({ preventScroll: true });
     }
   } catch (error) {
