@@ -5,10 +5,11 @@ Web-app mobile-first untuk membantu membaca nomor rangka 17 karakter dari foto S
 ## Alur
 
 1. Buka kamera atau unggah foto dokumen.
-2. Jalankan OCR untuk mencari kandidat VIN.
-3. Periksa dan koreksi VIN secara manual.
-4. Salin VIN dan buka situs SSC Toyota.
-5. Pengguna menempel VIN, mengisi email, menyelesaikan CAPTCHA, lalu menekan **Search** pada situs SSC.
+2. Geser atau ubah ukuran kotak agar hanya mencakup baris nomor rangka.
+3. Jalankan OCR untuk mencari kandidat VIN dari area yang dipotong.
+4. Periksa dan koreksi VIN secara manual.
+5. Salin VIN dan buka situs SSC Toyota.
+6. Pengguna menempel VIN, mengisi email, menyelesaikan CAPTCHA, lalu menekan **Search** pada situs SSC.
 
 > Web-app ini tidak mengirim foto, VIN, atau email ke server sendiri. OCR diproses di browser. Mesin dan data bahasa OCR akan diambil ketika pertama kali digunakan.
 

@@ -48,11 +48,26 @@
             </div>
             <span class="chip">STNK / BPKB</span>
           </div>
-          <p class="section-copy">Pastikan nomor rangka terlihat utuh, tajam, dan mendapat cahaya yang cukup.</p>
+          <p class="section-copy">Pastikan nomor rangka terlihat utuh, tajam, dan mendapat cahaya yang cukup. Setelah foto dipilih, potong khusus area nomor rangka.</p>
 
           <div class="camera-frame" id="cameraFrame">
             <video id="camera" autoplay playsinline muted hidden></video>
-            <canvas id="preview" hidden></canvas>
+            <div class="crop-workspace" id="cropWorkspace" hidden>
+              <canvas id="preview"></canvas>
+              <div
+                class="crop-selection"
+                id="cropSelection"
+                tabindex="0"
+                role="group"
+                aria-label="Area nomor rangka. Geser kotak ini atau tarik pegangan sudut untuk memilih VIN."
+              >
+                <span class="crop-selection__label">AREA VIN</span>
+                <i class="crop-handle crop-handle--nw" data-handle="nw" aria-hidden="true"></i>
+                <i class="crop-handle crop-handle--ne" data-handle="ne" aria-hidden="true"></i>
+                <i class="crop-handle crop-handle--sw" data-handle="sw" aria-hidden="true"></i>
+                <i class="crop-handle crop-handle--se" data-handle="se" aria-hidden="true"></i>
+              </div>
+            </div>
             <div class="empty-preview" id="emptyPreview">
               <div class="scan-corners" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
               <span class="empty-preview__icon" aria-hidden="true">⌁</span>
@@ -73,6 +88,14 @@
             </label>
             <input id="imageFile" type="file" accept="image/*" capture="environment" hidden />
           </div>
+          <div class="crop-panel" id="cropPanel" hidden>
+            <p class="crop-panel__instruction"><strong>Potong area nomor rangka.</strong> Geser kotak merah hingga hanya mencakup 17 karakter VIN, lalu gunakan area tersebut untuk OCR.</p>
+            <div class="button-row crop-panel__actions">
+              <button class="button button--primary" id="confirmCrop" type="button">Gunakan area ini</button>
+              <button class="button button--outline" id="resetCrop" type="button">Atur ulang kotak</button>
+            </div>
+            <p class="helper-text" id="cropStatus" role="status">Pilih area nomor rangka terlebih dahulu.</p>
+          </div>
           <p class="helper-text" id="cameraStatus" role="status">Kamera memerlukan izin browser. Gunakan HTTPS saat web-app sudah di-host.</p>
         </section>
 
@@ -83,7 +106,7 @@
               <h2 id="ocr-title">Baca nomor rangka</h2>
             </div>
           </div>
-          <p class="section-copy">OCR akan mencari karakter VIN dari gambar yang Anda pilih. Hasil tetap perlu diperiksa.</p>
+          <p class="section-copy">OCR hanya membaca area VIN yang sudah Anda potong. Hasil tetap perlu diperiksa dengan dokumen asli.</p>
           <button class="button button--primary button--wide" id="readVin" type="button" disabled>
             Baca nomor rangka dengan OCR
           </button>
@@ -133,7 +156,7 @@
           <h2 id="tips-title">Agar hasil scan lebih akurat</h2>
           <ul>
             <li>Hindari pantulan cahaya pada dokumen.</li>
-            <li>Ambil foto dari arah lurus dan jangan memotong VIN.</li>
+            <li>Potong kotak serapat mungkin di sekeliling baris nomor rangka.</li>
             <li>Jika OCR keliru, ubah nomor rangka secara manual.</li>
           </ul>
         </section>

@@ -50,7 +50,25 @@ h2 { margin: 0; color: #172127; font: 800 21px/1.2 'Playfair Display', Georgia, 
 .section-copy { margin: 11px 0 16px; color: #66747b; font-size: 12px; line-height: 1.65; }
 
 .camera-frame { height: min(57vw, 330px); min-height: 200px; position: relative; display: grid; place-items: center; overflow: hidden; border: 1px dashed #b9c4c1; border-radius: 7px; background: #f2f4f1; }
-.camera-frame video, .camera-frame canvas { width: 100%; height: 100%; object-fit: contain; background: #111; }
+.camera-frame video { width: 100%; height: 100%; object-fit: contain; background: #111; }
+.camera-frame.is-cropping { display: block; height: auto; min-height: 0; border-style: solid; background: #13191c; }
+.crop-workspace { position: relative; line-height: 0; touch-action: none; user-select: none; }
+.crop-workspace canvas { display: block; width: 100%; height: auto; max-height: 500px; background: #111; }
+.crop-selection { position: absolute; border: 2px solid #f7e6d4; box-shadow: 0 0 0 9999px rgb(8 14 16 / 61%); cursor: move; touch-action: none; }
+.crop-selection:focus-visible { outline: 3px solid #fff; outline-offset: 4px; }
+.crop-selection.is-confirmed { border-color: #b4f2d0; }
+.crop-selection.is-disabled { pointer-events: none; opacity: .75; }
+.crop-selection__label { position: absolute; top: -23px; left: -2px; padding: 5px 7px; color: #fff; border-radius: 3px 3px 0 0; background: #a8151d; font: 500 9px/1 'DM Mono', monospace; letter-spacing: .1em; white-space: nowrap; }
+.crop-selection.is-confirmed .crop-selection__label { background: #247351; }
+.crop-handle { position: absolute; width: 18px; height: 18px; border: 2px solid #a8151d; border-radius: 50%; background: #fff; touch-action: none; }
+.crop-handle--nw { top: -10px; left: -10px; cursor: nwse-resize; }
+.crop-handle--ne { top: -10px; right: -10px; cursor: nesw-resize; }
+.crop-handle--sw { bottom: -10px; left: -10px; cursor: nesw-resize; }
+.crop-handle--se { right: -10px; bottom: -10px; cursor: nwse-resize; }
+.crop-panel { margin-top: 13px; padding: 12px; border: 1px solid #ead8c6; border-radius: 7px; background: #fffaf5; }
+.crop-panel__instruction { margin: 0; color: #675647; font-size: 11px; line-height: 1.55; }
+.crop-panel__instruction strong { color: #4a3725; }
+.crop-panel__actions { margin-top: 11px; }
 .empty-preview { width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 7px; color: #65747a; position: relative; }
 .empty-preview__icon { color: #ad1720; font: 700 41px/1 'Playfair Display', serif; transform: rotate(-24deg); }
 .empty-preview strong { font-size: 13px; color: #46535a; }
