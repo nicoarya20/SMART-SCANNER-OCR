@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#b5121b" />
+    <meta
+      name="description"
+      content="Web-app untuk memindai dan memvalidasi nomor rangka Toyota sebelum pengecekan SSC."
+    />
+    <title>Smart Scanner VIN Toyota</title>
+  </head>
+  <body>
+    <div class="site-shell">
+      <header class="hero">
+        <div class="hero__content">
+          <a class="brand" href="/" aria-label="Smart Scanner VIN Toyota, halaman utama">
+            <span class="brand__mark" aria-hidden="true">T</span>
+            <span>SMART SCANNER <b>VIN</b></span>
+          </a>
+          <div class="hero__eyebrow">BANTUAN CEK SPECIAL SERVICE CAMPAIGN</div>
+          <h1>Scan nomor rangka,<br /><em>cek dengan lebih yakin.</em></h1>
+          <p>
+            Ambil foto STNK atau BPKB, baca VIN secara otomatis, lalu lanjutkan ke situs SSC Toyota.
+          </p>
+        </div>
+      </header>
+
+      <main class="content" id="main-content">
+        <div class="privacy-note" role="note">
+          <span aria-hidden="true">◈</span>
+          <p><strong>Privasi terjaga.</strong> Foto diproses di browser Anda dan tidak disimpan oleh web-app ini.</p>
+        </div>
+
+        <ol class="progress-steps" aria-label="Tahapan penggunaan">
+          <li class="progress-steps__item is-active"><span>1</span> Ambil foto</li>
+          <li class="progress-steps__line" aria-hidden="true"></li>
+          <li class="progress-steps__item"><span>2</span> Baca VIN</li>
+          <li class="progress-steps__line" aria-hidden="true"></li>
+          <li class="progress-steps__item"><span>3</span> Cek SSC</li>
+        </ol>
+
+        <section class="card" aria-labelledby="capture-title">
+          <div class="section-heading">
+            <div>
+              <p class="overline">LANGKAH 1</p>
+              <h2 id="capture-title">Ambil gambar dokumen</h2>
+            </div>
+            <span class="chip">STNK / BPKB</span>
+          </div>
+          <p class="section-copy">Pastikan nomor rangka terlihat utuh, tajam, dan mendapat cahaya yang cukup.</p>
+
+          <div class="camera-frame" id="cameraFrame">
+            <video id="camera" autoplay playsinline muted hidden></video>
+            <canvas id="preview" hidden></canvas>
+            <div class="empty-preview" id="emptyPreview">
+              <div class="scan-corners" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+              <span class="empty-preview__icon" aria-hidden="true">⌁</span>
+              <strong>Siapkan dokumen Anda</strong>
+              <small>Nomor rangka terdiri dari 17 karakter</small>
+            </div>
+          </div>
+
+          <div class="button-row">
+            <button class="button button--primary" id="startCamera" type="button">
+              <span aria-hidden="true">◉</span> Buka kamera
+            </button>
+            <button class="button button--quiet" id="capturePhoto" type="button" disabled>
+              Ambil foto
+            </button>
+            <label class="button button--outline" for="imageFile">
+              <span aria-hidden="true">↥</span> Unggah foto
+            </label>
+            <input id="imageFile" type="file" accept="image/*" capture="environment" hidden />
+          </div>
+          <p class="helper-text" id="cameraStatus" role="status">Kamera memerlukan izin browser. Gunakan HTTPS saat web-app sudah di-host.</p>
+        </section>
+
+        <section class="card" aria-labelledby="ocr-title">
+          <div class="section-heading">
+            <div>
+              <p class="overline">LANGKAH 2</p>
+              <h2 id="ocr-title">Baca nomor rangka</h2>
+            </div>
+          </div>
+          <p class="section-copy">OCR akan mencari karakter VIN dari gambar yang Anda pilih. Hasil tetap perlu diperiksa.</p>
+          <button class="button button--primary button--wide" id="readVin" type="button" disabled>
+            Baca nomor rangka dengan OCR
+          </button>
+          <div class="ocr-progress" id="ocrProgress" hidden aria-live="polite">
+            <div class="ocr-progress__track"><span id="ocrProgressBar"></span></div>
+            <p id="ocrStatus">Menyiapkan OCR...</p>
+          </div>
+        </section>
+
+        <section class="card result-card" aria-labelledby="review-title">
+          <div class="section-heading">
+            <div>
+              <p class="overline">LANGKAH 3</p>
+              <h2 id="review-title">Periksa VIN sebelum lanjut</h2>
+            </div>
+          </div>
+          <label class="input-label" for="vin">Nomor rangka <span>(17 karakter)</span></label>
+          <div class="vin-input-wrap">
+            <input
+              id="vin"
+              type="text"
+              inputmode="text"
+              autocomplete="off"
+              autocapitalize="characters"
+              spellcheck="false"
+              maxlength="17"
+              placeholder="Contoh: MR0XXXXXXXXXXXXXX"
+              aria-describedby="vinValidation"
+            />
+            <span class="valid-icon" id="validIcon" aria-hidden="true" hidden>✓</span>
+          </div>
+          <p class="validation-message" id="vinValidation" role="status">Masukkan 17 karakter VIN untuk melanjutkan.</p>
+          <div class="vin-rules">
+            <span aria-hidden="true">!</span> VIN tidak menggunakan huruf I, O, atau Q. Cocokkan kembali dengan dokumen asli.
+          </div>
+
+          <div class="button-row button-row--result">
+            <button class="button button--outline" id="copyVin" type="button" disabled>Salin VIN</button>
+            <button class="button button--primary" id="openSsc" type="button" disabled>
+              Salin &amp; buka SSC Toyota <span aria-hidden="true">↗</span>
+            </button>
+          </div>
+          <p class="ssc-note">Di situs SSC Toyota, tempel VIN, masukkan email Anda, selesaikan CAPTCHA, lalu tekan <b>Search</b>.</p>
+        </section>
+
+        <section class="tips" aria-labelledby="tips-title">
+          <h2 id="tips-title">Agar hasil scan lebih akurat</h2>
+          <ul>
+            <li>Hindari pantulan cahaya pada dokumen.</li>
+            <li>Ambil foto dari arah lurus dan jangan memotong VIN.</li>
+            <li>Jika OCR keliru, ubah nomor rangka secara manual.</li>
+          </ul>
+        </section>
+      </main>
+
+      <footer>
+        <p>Smart Scanner VIN dibuat sebagai alat bantu pembacaan dokumen.</p>
+        <a href="https://ssc.toyota.astra.co.id/" target="_blank" rel="noreferrer">Buka SSC Toyota langsung <span aria-hidden="true">↗</span></a>
+      </footer>
+    </div>
+    <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
