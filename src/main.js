@@ -491,19 +491,56 @@ async function recognizeVin() {
   }
 }
 
-async function copyVin() {
-  if (!refreshVinState()) return false;
+function copyWithLegacyClipboard(text) {
+  const field = document.createElement('textarea');
+  field.value = text;
+  field.setAttribute('readonly', '');
+  field.setAttribute('aria-hidden', 'true');
+  field.style.position = 'fixed';
+  field.style.inset = '0 auto auto -9999px';
+  field.style.opacity = '0';
+  document.body.append(field);
+  field.select();
 
+  let copied = false;
   try {
-    await navigator.clipboard.writeText(elements.vin.value);
+    copied = document.execCommand('copy');
   } catch {
+    copied = false;
+  }
+  field.remove();
+  return copied;
+}
+
+function startVinCopy() {
+  if (!refreshVinState()) return Promise.resolve(false);
+
+  const value = elements.vin.value;
+  let clipboardWrite;
+  try {
+    // Invoke while still inside the user's click gesture, before opening another tab.
+    clipboardWrite = navigator.clipboard?.writeText(value);
+  } catch {
+    clipboardWrite = null;
+  }
+
+  // Synchronous fallback works in browsers that do not grant Async Clipboard access.
+  const legacyCopied = copyWithLegacyClipboard(value);
+  if (!clipboardWrite) return Promise.resolve(legacyCopied);
+
+  return Promise.resolve(clipboardWrite).then(
+    () => true,
+    () => legacyCopied,
+  );
+}
+
+async function copyVin() {
+  const copied = await startVinCopy();
+  if (!copied) {
     elements.vin.focus();
     elements.vin.select();
-    const copied = document.execCommand('copy');
-    if (!copied) {
-      showToast('VIN belum dapat disalin. Silakan salin secara manual.');
-      return false;
-    }
+    showToast('Salin otomatis diblokir. VIN dipilih, tekan Ctrl+C atau ⌘C untuk menyalin.');
+    return false;
   }
 
   showToast('VIN sudah disalin. Tempelkan di situs SSC Toyota.');
@@ -512,11 +549,19 @@ async function copyVin() {
 
 async function copyAndOpenSsc() {
   if (!refreshVinState()) return;
-  window.open(SSC_URL, '_blank', 'noopener,noreferrer');
-  const copied = await copyVin();
 
-  if (!copied) {
-    showToast('SSC Toyota sudah dibuka. Salin VIN secara manual bila diperlukan.');
+  // Start copying synchronously from this click, then open SSC before awaiting so
+  // browsers still recognize the navigation as a direct user action.
+  const copyPromise = startVinCopy();
+  window.open(SSC_URL, '_blank', 'noopener,noreferrer');
+  const copied = await copyPromise;
+
+  if (copied) {
+    showToast('VIN disalin. Di SSC Toyota, tempelkan VIN ke kolom Nomor Rangka.');
+  } else {
+    elements.vin.focus();
+    elements.vin.select();
+    showToast('SSC Toyota dibuka. Salin VIN yang sudah dipilih dengan Ctrl+C atau ⌘C.');
   }
 }
 
